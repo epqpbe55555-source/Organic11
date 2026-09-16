@@ -341,6 +341,41 @@
   .map-display p{color:var(--text); margin:0 0 10px; font-size:0.96rem;}
   .map-placeholder{color:var(--text-muted); font-style:italic;}
 
+  /* ================= LEVEL TABS (Flash Cards + Quiz Bank) ================= */
+  .level-tabs{
+    display:flex;
+    gap:2px;
+    margin-bottom:24px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--border);
+    flex-wrap:wrap;
+  }
+  .level-btn{
+    flex:1 1 160px;
+    background:var(--panel);
+    color:var(--text-muted);
+    border:none;
+    padding:13px 16px;
+    font-family:'Inter',sans-serif;
+    font-size:0.88rem;
+    font-weight:600;
+    cursor:pointer;
+    text-align:left;
+    transition:background .15s ease, color .15s ease;
+  }
+  .level-btn:hover{background:var(--panel-alt); color:var(--text);}
+  .level-btn.active{background:var(--panel-raise); color:var(--accent);}
+  .level-btn .level-count{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:400;
+    color:var(--text-muted);
+    font-size:0.78rem;
+    margin-left:6px;
+  }
+  .level-btn.active .level-count{color:var(--sage);}
+
   /* ================= FLASHCARDS ================= */
   .card-grid{
     display:grid;
@@ -568,7 +603,12 @@
   <section class="panel" id="cards">
     <div class="section-head">
       <h2>Flash cards</h2>
-      <p>Tap a card to flip it. Covers the whole set of reactions.</p>
+      <p>Tap a card to flip it. Pick a difficulty level — each covers the full set of reactions at a different depth.</p>
+    </div>
+    <div class="level-tabs" id="cardLevelTabs">
+      <button class="level-btn active" data-level="easy">Level 1 · Easy<span class="level-count">60</span></button>
+      <button class="level-btn" data-level="medium">Level 2 · Medium<span class="level-count">50</span></button>
+      <button class="level-btn" data-level="hard">Level 3 · Hard<span class="level-count">40</span></button>
     </div>
     <div class="card-grid" id="cardGrid"></div>
   </section>
@@ -577,7 +617,12 @@
   <section class="panel" id="quiz">
     <div class="section-head">
       <h2>Quiz bank</h2>
-      <p id="quizSub">32 questions, options reshuffled every attempt.</p>
+      <p id="quizSub">Pick a difficulty level. Options reshuffle every attempt.</p>
+    </div>
+    <div class="level-tabs" id="quizLevelTabs">
+      <button class="level-btn active" data-level="easy">Level 1 · Easy<span class="level-count">60</span></button>
+      <button class="level-btn" data-level="medium">Level 2 · Medium<span class="level-count">50</span></button>
+      <button class="level-btn" data-level="hard">Level 3 · Hard<span class="level-count">40</span></button>
     </div>
     <div class="quiz-shell" id="quizShell"></div>
   </section>
@@ -730,90 +775,356 @@ mapTopics.forEach((topic,i)=>{
   mapList.appendChild(btn);
 });
 
-/* ================= FLASH CARDS DATA ================= */
-const flashcards = [
-  ["What two groups make up the carboxyl group?","A carbonyl (C=O) and a hydroxyl (OH)"],
-  ["Why is the OH of COOH so reactive?","Because of the effect of the adjacent C=O — it enables loss of H⁺ or replacement"],
-  ["What makes carboxylic acids the most acidic organic class?","A measurable acid–ion equilibrium exists in water: RCOOH + H₂O ⇌ RCOO⁻ + H₃O⁺"],
-  ["What does a larger Ka mean?","Greater ionization → a stronger acid"],
-  ["Why is ROH a weaker acid than water?","The alkyl group's +I effect raises electron density on O, making H⁺ release harder"],
-  ["What happens when RCOO⁻ reacts with water?","Hydrolysis: RCOO⁻ + H₂O ⇌ RCOOH + OH⁻ (carboxylate is moderately basic)"],
-  ["Name the three reagents that convert RCOOH to RCOCl.","SOCl₂, PCl₃, and PCl₅"],
-  ["Why is SOCl₂ preferred for making acid chlorides?","Its byproducts (SO₂, HCl) are gases that leave easily, and excess SOCl₂ distills off"],
-  ["What is the direct (Fischer) esterification equation?","RCOOH + R'OH ⇌(H⁺) RCOOR' + H₂O"],
-  ["Why is direct esterification a 'disadvantage' compared to the acid-chloride route?","It's reversible — H⁺ catalyzes both esterification and hydrolysis, so it just reaches equilibrium"],
-  ["In the acetic acid + ethanol equilibrium, what's the approximate product split?","About two-thirds mole each of ester and water; one-third mole each of acid and alcohol left"],
-  ["How can you push an esterification equilibrium toward more ester?","Use a large excess of whichever reactant (acid or alcohol) is cheap and available"],
-  ["What is the alcohol reactivity order in esterification?","CH₃OH > 1° > 2° (> 3°)"],
-  ["What is the acid reactivity order in esterification?","HCOOH > CH₃COOH > RCH₂COOH > R₂CHCOOH > R₃CCOOH"],
-  ["How are amides usually made from acids?","Acid → acid chloride (e.g. with SOCl₂) → + NH₃ → amide"],
-  ["Which reagent reduces a carboxylic acid straight to an alcohol?","LiAlH₄ (lithium aluminum hydride)"],
-  ["What is the intermediate in LiAlH₄ reduction of an acid?","An alkoxide, which is hydrolyzed to liberate the alcohol"],
-  ["Why isn't LiAlH₄ used industrially at large scale?","It's expensive — reserved for small amounts of valuable material like drugs and hormones"],
-  ["What's the two-step alternative to direct LiAlH₄ reduction?","Esterify the acid, then reduce the ester"],
-  ["What is the Hell–Volhard–Zelinsky (HVZ) reaction?","Alpha-halogenation of an aliphatic acid using X₂ with a trace of phosphorus"],
-  ["What is phosphorus's real role in the HVZ reaction?","It converts a little of the acid into acid halide, through which each molecule undergoes alpha-halogenation"],
-  ["What happens when an α-halogenated acid reacts with excess NH₃?","It forms an α-amino acid"],
-  ["What happens when an α-halogenated acid reacts with NaOH then H⁺?","It forms an α-hydroxy acid"],
-  ["What happens when a β-halogenated acid reacts with alcoholic KOH?","Elimination gives an α,β-unsaturated acid"],
-  ["Give the general derivative formula for a carboxylic acid.","R-COOH → R-CO-Z, where Z = -Cl, -OR', or -NH₂"]
-];
+/* ================= FLASH CARDS DATA (3 levels) ================= */
+const flashcardsByLevel = {
+easy: [
+  ["What two functional groups make up the carboxyl group (COOH)?","A carbonyl group (C=O) and a hydroxyl group (OH)"],
+  ["What is the most characteristic chemical property of carboxylic acids?","Acidity"],
+  ["Write the ionization equilibrium of a carboxylic acid in water.","RCOOH + H₂O ⇌ RCOO⁻ + H₃O⁺"],
+  ["Write the simplified form of the acid ionization equilibrium.","RCOOH ⇌ RCOO⁻ + H⁺"],
+  ["Write the Ka expression for a carboxylic acid.","Ka = [RCOO⁻][H₃O⁺] / [RCOOH]"],
+  ["What does a larger Ka value indicate about an acid?","Greater ionization and a stronger acid"],
+  ["What are carboxylate anions (RCOO⁻) like in terms of basicity?","Moderately basic"],
+  ["Write the hydrolysis equilibrium of a carboxylate anion.","RCOO⁻ + H₂O ⇌ RCOOH + OH⁻"],
+  ["State the relative acidity order given in the notes.","RCOOH > HOH > ROH > HC≡CH > NH₃ > RH"],
+  ["State the relative basicity order given in the notes.","RCOO⁻ < HO⁻ < RO⁻ < HC≡C⁻ < NH₂⁻ < R⁻"],
+  ["What electronic effect does an alkyl group have?","A +I (electron-donating inductive) effect"],
+  ["Which is more acidic, water or an alcohol (ROH)?","Water — alcohol is a weaker acid"],
+  ["Give the reaction of acetic acid with zinc.","2CH₃COOH + Zn → (CH₃COO⁻)₂Zn²⁺ + H₂"],
+  ["What salt forms when lauric acid reacts with NaOH?","Sodium laurate"],
+  ["What salt forms when benzoic acid reacts with NaHCO₃?","Sodium benzoate (plus CO₂ and H₂O)"],
+  ["Write the general formula for a carboxylic acid derivative.","R-COOH → R-CO-Z (Z = -Cl, -OR', or -NH₂)"],
+  ["Which functional derivative is a carboxylic acid most often converted into?","The acid chloride"],
+  ["What atom replaces the OH of a carboxylic acid to form an acid chloride?","Chlorine (Cl)"],
+  ["Name the three common reagents for preparing acid chlorides.","SOCl₂, PCl₃, and PCl₅"],
+  ["What is thionyl chloride's chemical formula?","SOCl₂"],
+  ["Why is thionyl chloride particularly convenient for making acid chlorides?","Its byproducts are gases, easily separated, and excess SOCl₂ is removed by distillation"],
+  ["What are the byproducts when benzoic acid reacts with SOCl₂?","SO₂ and HCl"],
+  ["What is the product of benzoic acid + SOCl₂ under reflux?","Benzoyl chloride"],
+  ["What byproducts form when 3,5-dinitrobenzoic acid reacts with PCl₅?","POCl₃ and HCl"],
+  ["Name the ester-forming route that goes through the acid chloride.","RCOOH → RCOCl → RCOOR' (using R'OH)"],
+  ["What is formed when trimethylacetic acid reacts with SOCl₂, then ethanol?","Ethyl trimethylacetate (via trimethylacetyl chloride)"],
+  ["What conditions convert a carboxylic acid directly into an ester?","Heating with an alcohol plus a little mineral acid (e.g. conc. H₂SO₄ or dry HCl)"],
+  ["Write the direct (Fischer) esterification equilibrium.","RCOOH + R'OH ⇌(H⁺) RCOOR' + H₂O"],
+  ["Is direct esterification reversible or irreversible?","Reversible"],
+  ["What product forms from benzoic acid + methanol?","Methyl benzoate"],
+  ["What product forms from acetic acid + benzyl alcohol?","Benzyl acetate"],
+  ["In the acetic acid + ethanol equilibrium, roughly how much ester and water form?","About two-thirds mole each"],
+  ["In that same equilibrium, roughly how much acid and alcohol remain?","About one-third mole each"],
+  ["What catalyzes both esterification and its reverse reaction (hydrolysis)?","The hydrogen ion (H⁺)"],
+  ["What advantage does the acid-chloride route to esters have over direct esterification?","Both of its steps are essentially irreversible and go to completion"],
+  ["What advantage does direct esterification have over the acid-chloride route?","It is a single-step synthesis"],
+  ["How many moles of ethanol were used to more completely convert γ-phenylbutyric acid into its ester?","Eight moles"],
+  ["What is the reported yield of ethyl γ-phenylbutyrate in that reaction?","85–88%"],
+  ["What effect do bulky groups near the reaction site have on esterification?","They slow it down (and slow hydrolysis too)"],
+  ["State the alcohol reactivity order in esterification.","CH₃OH > 1° > 2° (> 3°)"],
+  ["State the acid reactivity order in esterification.","HCOOH > CH₃COOH > RCH₂COOH > R₂CHCOOH > R₃CCOOH"],
+  ["Name the acid whose common name is 'mesitoic acid.'","2,4,6-Trimethylbenzoic acid"],
+  ["What functional group replaces the OH of a carboxylic acid to form an amide?","NH₂"],
+  ["How are amides generally prepared?","By reaction of ammonia with acid chlorides"],
+  ["What product forms when phenylacetic acid reacts with SOCl₂, then NH₃?","Phenylacetamide (via phenylacetyl chloride)"],
+  ["Which reagent is one of the few that can reduce a carboxylic acid directly to an alcohol?","LiAlH₄ (lithium aluminum hydride)"],
+  ["What is the initial product of LiAlH₄ reduction of an acid?","An alkoxide"],
+  ["How is the alcohol liberated from the alkoxide intermediate?","By hydrolysis"],
+  ["Why is LiAlH₄ used industrially only on a small scale?","Because it is somewhat expensive"],
+  ["What is the two-step alternative to direct LiAlH₄ reduction of an acid?","Esterification, then reduction of the ester"],
+  ["What alcohol is formed when acetic acid is reduced with LiAlH₄?","Ethanol"],
+  ["What alcohol is formed when m-toluic acid is reduced with LiAlH₄?","m-Methylbenzyl alcohol"],
+  ["What is the name of the reaction that alpha-halogenates aliphatic carboxylic acids?","The Hell–Volhard–Zelinsky (HVZ) reaction"],
+  ["What element is used in small amount to promote the HVZ reaction?","Phosphorus (P)"],
+  ["Which position on the acid is halogenated in the HVZ reaction?","The alpha carbon"],
+  ["What is the real function of phosphorus in the HVZ reaction?","It converts a little of the acid into acid halide"],
+  ["What product forms when acetic acid is fully chlorinated (three times) via HVZ?","Cl₃CCOOH (trichloroacetic acid)"],
+  ["What happens when CH₃CH₂COOH is brominated twice via HVZ?","It gives CH₃CBr₂COOH, and no further substitution occurs"],
+  ["What product forms when an α-halogenated acid reacts with a large excess of NH₃?","An α-amino acid"],
+  ["What product forms when a halogenated acid reacts with alcoholic KOH?","An α,β-unsaturated acid (by elimination)"]
+],
+medium: [
+  ["Why does the OH group of a carboxylic acid react so readily despite being a simple hydroxyl?","Because the adjacent C=O (carbonyl) makes loss of H⁺ or substitution possible"],
+  ["Why are carboxylic acids more acidic than alcohols even though both contain OH?","The carbonyl next to the OH stabilizes the resulting anion, an effect absent in simple alcohols"],
+  ["Explain in one line why alcohols are weaker acids than water.","The alkyl group's +I effect raises electron density on O, making it harder to release H⁺"],
+  ["Where does HC≡CH sit relative to carboxylic acids and ammonia on the acidity scale?","Weaker acid than RCOOH, ROH, or HOH, but stronger than NH₃"],
+  ["Rank these bases from weakest to strongest: HO⁻, RCOO⁻, RO⁻, R⁻.","RCOO⁻ < HO⁻ < RO⁻ < R⁻"],
+  ["Why is RCOO⁻ described as only 'moderately' basic rather than strongly basic?","Because RCOOH (its conjugate acid) is a relatively strong acid, so its conjugate base is correspondingly weak"],
+  ["What does the reaction of RCOO⁻ with water actually produce, besides RCOOH?","Hydroxide ions (OH⁻), via hydrolysis"],
+  ["Why is a weak base like NaHCO₃ sufficient to convert benzoic acid into its salt?","Because carboxylic acids are acidic enough to react even with weak bases like bicarbonate"],
+  ["Besides sodium benzoate, what two products form when benzoic acid reacts with NaHCO₃?","CO₂ and H₂O"],
+  ["Why does the acid-chloride route allow access to both esters and amides from a single intermediate?","Because the highly reactive acid chloride can be attacked by either an alcohol (→ ester) or ammonia (→ amide)"],
+  ["Compare the byproducts of SOCl₂ versus PCl₅ when reacting with a carboxylic acid.","SOCl₂ gives SO₂ and HCl (gases); PCl₅ gives POCl₃ and HCl"],
+  ["Why does thionyl chloride not leave residual reagent behind after the reaction?","Because excess SOCl₂ has a low boiling point and distills off easily"],
+  ["Why is direct esterification called 'reversible' while the acid-chloride route is 'irreversible'?","H⁺ catalyzes both the forward (esterification) and reverse (hydrolysis) reactions of the direct route, while both steps of the acid-chloride route go essentially to completion"],
+  ["If you start Fischer esterification from 1 mole of ester and 1 mole of water instead of acid and alcohol, what happens?","The same equilibrium mixture is reached (≈2/3 ester+water, ≈1/3 acid+alcohol)"],
+  ["Why is using 8 moles of ethanol advantageous when esterifying 1 mole of γ-phenylbutyric acid?","The large excess of cheap, readily available alcohol shifts the equilibrium toward the ester, raising the yield"],
+  ["Which reactant would you use in excess to esterify a valuable, expensive acid?","The alcohol, if it's the cheap, readily available reactant"],
+  ["Why does steric hindrance slow both esterification and hydrolysis rather than just one?","Because both are equilibrium processes going through the same hindered transition state, so anything hindering it slows both directions"],
+  ["Why does mesitoic acid (2,4,6-trimethylbenzoic acid) need special esterification methods?","Its two ortho-methyl groups create steric hindrance right next to the carboxyl group"],
+  ["Between a tertiary alcohol and methanol, which esterifies faster and why?","Methanol, because it has the least steric bulk around the reacting oxygen"],
+  ["Why are amides made from acid chlorides rather than directly from the acid and ammonia?","Because the acid chloride is far more reactive, so ammonia reacts with it more readily and cleanly"],
+  ["What is the overall two-step pathway from phenylacetic acid to phenylacetamide?","Phenylacetic acid --SOCl₂--> phenylacetyl chloride --NH₃--> phenylacetamide"],
+  ["Why is reduction of acids to alcohols important for fats, when alcohols are usually more available than acids?","Because long straight-chain acids from fats are actually more available than their corresponding alcohols, reversing the usual situation"],
+  ["Why must the alkoxide from LiAlH₄ reduction be hydrolyzed to get the alcohol?","Because the direct reduction product is the metal alkoxide salt, not the free alcohol"],
+  ["Why does industry limit LiAlH₄ use to drugs and hormones rather than bulk chemicals?","Because LiAlH₄ is somewhat expensive, so it's only economical for small amounts of valuable material"],
+  ["What is the benefit of the two-step (esterify-then-reduce) route over direct LiAlH₄ reduction?","It avoids the cost of LiAlH₄ for bulk quantities, using ester-reduction methods adaptable to industry"],
+  ["If acids from fats have only an even number of carbons, how can an odd-carbon alcohol be made?","By increasing the chain length by one carbon during synthesis"],
+  ["Why is the HVZ reaction considered important in synthesis despite only substituting one hydrogen?","Because of its high specificity (alpha-only) and the ease with which it proceeds"],
+  ["Explain how phosphorus enables alpha-halogenation without itself directly halogenating the alpha carbon.","It first reacts with the acid to form a small amount of acid halide, and the acid halide is what undergoes halogenation at the alpha position"],
+  ["Why does CH₃CH₂COOH stop at CH₃CBr₂COOH and undergo no further bromination?","Its alpha carbon only had two hydrogens to begin with, and both have now been replaced"],
+  ["Why can CH₃COOH be brominated/chlorinated three times but CH₃CH₂COOH only twice?","Acetic acid's alpha carbon (CH₃) starts with three hydrogens, while propionic acid's alpha carbon (CH₂) starts with only two"],
+  ["Why does the alpha-halogenated acid react so readily with NaOH or NH₃, similar to alkyl halides?","Because the C–X bond behaves like an ordinary alkyl halide, open to nucleophilic substitution"],
+  ["What distinguishes the reaction of a halo-acid with NaOH from its reaction with alcoholic KOH?","NaOH promotes substitution (to an α-hydroxy acid); alcoholic KOH promotes elimination (to an α,β-unsaturated acid)"],
+  ["Why is a 'large excess' of NH₃ specified when converting an α-halo acid to an α-amino acid?","To favor substitution by ammonia over side reactions and drive the reaction toward the amino acid product"],
+  ["In the sequence P + X₂ → PX₃, then RCH₂COOH + PX₃ → RCH₂COX, what is being generated in situ?","The reactive acid halide, which then undergoes alpha-halogenation"],
+  ["Explain why HVZ halogenation only needs a small amount of phosphorus, not a stoichiometric amount.","The acid halide exchanges its halogenated product with fresh unreacted acid, regenerating acid halide continuously from only a little P"],
+  ["Why does the note emphasize that Ka lets you compare acid strengths 'in an exact way'?","Because Ka is a precise numerical equilibrium constant, unlike qualitative descriptions of 'strong' or 'weak'"],
+  ["Contrast the roles of C=O and OH within the carboxyl group.","OH undergoes the actual chemistry (loss of H⁺ or substitution), while C=O provides the electronic effect that makes that chemistry possible"],
+  ["Why does the text describe the rest of the molecule (outside COOH) as reacting 'characteristically of its structure'?","Because other functional groups or unsaturation elsewhere in the molecule react independently, following their own normal chemistry"],
+  ["Compare the two named routes for making an ester, in terms of number of steps.","Direct (Fischer) esterification is a single step; the acid-chloride route is two steps"],
+  ["Why would a chemist choose the (more expensive, two-step) acid-chloride route despite direct esterification being simpler?","Because the acid-chloride route is essentially irreversible and goes to completion, giving a more reliable yield"],
+  ["What would happen to ester yield if no excess of either acid or alcohol were used in Fischer esterification?","The reaction would settle at the natural equilibrium mixture (~2/3 ester+water), giving a lower yield of ester"],
+  ["Explain why zinc metal can react with a carboxylic acid to release hydrogen gas.","The acid's ionizable H⁺ reacts with the metal like it would with any active metal, releasing H₂ and forming the metal carboxylate salt"],
+  ["Why does the text say salts like sodium laurate and sodium benzoate form so readily?","Because carboxylic acids are acidic enough to react completely with common bases (NaOH, NaHCO₃)"],
+  ["What determines whether phosphorus pentachloride or thionyl chloride is preferred in a given acid-chloride synthesis?","The ease of separating byproducts — SOCl₂'s gaseous byproducts and low boiling point make purification easier"],
+  ["Why might an aromatic acid (like benzoic acid) still show the general acid chloride/ester/amide reactions of a simple aliphatic acid?","Because these reactions are governed by the shared -COOH group; the aromatic ring is just 'the rest of the molecule' and doesn't block that reactivity"],
+  ["What does the phrase 'the OH undergoes nearly every reaction of loss of H⁺ or replacement' imply about which part of COOH is chemically active?","The OH group is the reactive site for essentially all these functional-group transformations"],
+  ["If a chemist wanted an alpha-amino acid from a simple fatty acid, what two-step sequence would achieve this?","First alpha-halogenate the acid (HVZ, X₂/P), then treat the halo-acid with a large excess of NH₃"],
+  ["If a chemist wanted an alpha-hydroxy acid instead, how would the second step differ?","Treat the alpha-halo acid with NaOH, then acidify with H⁺, instead of using excess NH₃"],
+  ["Why does converting an acid to its ester or amide via the acid chloride avoid the reversibility problem seen in direct esterification?","Because acid chlorides are so reactive that their reactions with alcohols or ammonia go essentially to completion, unlike the acid+alcohol equilibrium"],
+  ["Why does the acidity order place carboxylic acids above water, but the derived basicity order place carboxylate below hydroxide?","Because a stronger acid (RCOOH vs HOH) always yields a correspondingly weaker conjugate base (RCOO⁻ vs HO⁻)"]
+],
+hard: [
+  ["Design a high-yield synthesis of ethyl γ-phenylbutyrate from γ-phenylbutyric acid without an acid-chloride step. What is the key strategic choice?","Direct Fischer esterification with a large excess of cheap ethanol (8 mol per 1 mol acid) under H₂SO₄ reflux, shifting the equilibrium toward ester and pushing yield to ~85–88%, rather than using a stoichiometric amount that would stall at the natural equilibrium"],
+  ["A chemist needs to reduce bulk lauric acid to its alcohol for industrial-scale synthesis. Should LiAlH₄ be used directly? Justify.","No — LiAlH₄ gives excellent yields but is expensive; at industrial (bulk) scale it's better to esterify the acid first and reduce the ester by a more industry-adaptable method, reserving LiAlH₄ for small, high-value targets"],
+  ["Explain mechanistically why CH₃COOH can be progressively converted to Cl₃CCOOH, but CH₃CH₂COOH can only reach CH₃CBr₂COOH.","Each HVZ cycle replaces one alpha-hydrogen; acetic acid's alpha carbon (CH₃) starts with three H's, allowing three substitutions, while propionic acid's alpha carbon (CH₂) starts with only two H's, so substitution stops after the second"],
+  ["Why does the HVZ reaction require only a 'small amount' of phosphorus rather than a stoichiometric quantity relative to the acid?","Phosphorus only generates a small amount of acid halide initially; that acid halide is halogenated and then exchanges its halogen with fresh unreacted acid, regenerating acid halide and propagating alpha-halogenation through the whole batch"],
+  ["Two acids are esterified with methanol under identical acidic conditions: R₃CCOOH and HCOOH. Which reaches equilibrium faster, and why?","HCOOH reacts fastest; the acid-reactivity order (HCOOH > CH₃COOH > RCH₂COOH > R₂CHCOOH > R₃CCOOH) places formic acid, with no steric bulk near the carboxyl carbon, well ahead of the heavily hindered R₃CCOOH"],
+  ["A student expects a tertiary alcohol to esterify fast, reasoning by analogy to SN1 chemistry. Why does this expectation fail?","Esterification rate is governed by steric hindrance at the reacting oxygen/carbon, not carbocation stability; tertiary alcohols are the most hindered and react slowest, unlike SN1 chemistry where tertiary substrates are favored"],
+  ["Why is the equilibrium mixture from 1 mol ester + 1 mol water (with H⁺) identical to that from 1 mol acid + 1 mol alcohol?","The same catalyst (H⁺) accelerates both the forward and reverse reactions equally without shifting the position of equilibrium, so the system reaches the same thermodynamic point regardless of starting side"],
+  ["Using the ~2/3:1/3 product-to-reactant ratio for the acetic acid/ethanol system, estimate the equilibrium constant.","Kc ≈ (2/3 × 2/3) / (1/3 × 1/3) = (4/9)/(1/9) ≈ 4"],
+  ["Why is the acid-chloride route preferred for a valuable acid, despite the extra step and reagent?","Both steps (acid → acid chloride, then → ester) are essentially irreversible, converting the valuable acid with minimal loss to the reverse (hydrolysis) reaction, unlike direct esterification which caps out at an equilibrium"],
+  ["Explain, at the mechanistic level, why treating a halogenated acid with alcoholic KOH gives an α,β-unsaturated acid rather than an α-hydroxy acid.","Alcoholic KOH favors E2 elimination, removing a beta-hydrogen together with the alpha-halide to form a C(alpha)=C(beta) double bond, whereas aqueous NaOH favors substitution (SN2) at the alpha carbon, replacing halide directly with OH"],
+  ["Explain why the acid-chloride and ester-formation steps are each described as 'essentially irreversible.'","Acid chlorides are highly electrophilic and react rapidly and completely with nucleophiles (alcohols, ammonia), releasing a stable byproduct (Cl⁻/HCl), so there is no significant reverse pathway back to reactants"],
+  ["A carboxylic acid is treated first with a small amount of P and Cl₂, then with excess NH₃. Predict the final product and explain the two mechanistic roles played.","The product is an α-amino acid; HVZ first chlorinates the alpha carbon via a phosphorus-generated acid chloride intermediate, then excess ammonia substitutes the resulting alpha-chloro acid, displacing chloride with an amino group"],
+  ["Show that the acidity order (RCOOH > HOH) and basicity order (RCOO⁻ < HO⁻) are logically consistent with each other.","Since RCOOH is a stronger acid than HOH, its conjugate base RCOO⁻ must be a weaker base than HOH's conjugate base HO⁻ — stronger acids always have correspondingly weaker conjugate bases"],
+  ["Using the +I effect, explain why R₃CCOOH is a weaker acid in principle than HCOOH, and connect this to its esterification rate.","More alkyl substitution increases electron density at the carboxyl oxygen through cumulative +I effects, weakening the acid; the same alkyl bulk also sterically hinders nucleophilic attack, independently explaining R₃CCOOH's slower esterification"],
+  ["Compare the steps needed for (a) direct esterification, (b) ester via acid chloride, and (c) amide formation. What does this imply about a direct acid+ammonia route?","(a) one step; (b) two steps; (c) two steps (only via acid chloride) — implying the text does not describe a direct, reversible acid + ammonia route analogous to Fischer esterification"],
+  ["Using the HVZ mechanism's halogen-exchange step, explain why the halogen on the final product need not come from the same PX₃ molecule that first reacted with that acid molecule.","The mechanism includes a halogen-exchange step (RCHXCOX + RCH₂COOH → RCHXCOOH + RCH₂COX) that transfers the halogenated identity to a fresh acid while regenerating unhalogenated acid halide, so halogens are effectively shuffled among molecules"],
+  ["If only a trace amount of acid is ever present as the acid halide during HVZ, explain how 'each molecule of acid sooner or later undergoes alpha-halogenation.'","Through the halogen-exchange equilibrium, every acid molecule eventually cycles through the acid-halide form long enough to be halogenated, then hands the acid-halide role to another molecule, converting the whole batch over time"],
+  ["Explain why amide formation from an acid chloride avoids the reversibility concern seen in Fischer esterification.","The acid chloride + ammonia reaction releases HCl and goes essentially to completion, unlike the acid + alcohol reaction where H⁺ catalyzes an equilibrium in both directions"],
+  ["Predict which esterifies faster, RCH₂COOH or R₂CHCOOH, and what this predicts about the hydrolysis rate of their esters.","RCH₂COOH esterifies faster (less hindrance); since sterics slow both directions, the ester of RCH₂COOH should also hydrolyze faster than the ester of R₂CHCOOH"],
+  ["Critique the claim that LiAlH₄ is the ideal reagent for reducing large industrial batches of a common fatty acid.","Poor economic choice: LiAlH₄ is expensive, restricting bulk industrial use to valuable materials (drugs/hormones), and a cheaper two-step alternative (esterify, then reduce) exists for large-scale, low-value feedstocks"],
+  ["Connect 'long straight-chain acids from fats are more available than the corresponding alcohols' to the importance of reduction chemistry for industry.","Since usable long-chain alcohols aren't directly available, reducing the abundant fatty acids becomes the practical route to alcohol-derived compounds, making acid-to-alcohol reduction economically essential"],
+  ["Only even-carbon fatty acids are naturally available. How could an odd-carbon alcohol still be obtained from this feedstock?","By first increasing the chain length of an even-carbon acid by one carbon before reducing it to the alcohol"],
+  ["Predict the product if propionic acid is brominated once via HVZ, then the product is treated with alcoholic KOH.","Elimination using a beta-hydrogen (from the terminal CH₃) with the alpha-Br gives an α,β-unsaturated acid (acrylic acid, CH₂=CHCOOH), not a substitution product"],
+  ["Why does the text describe only one route to amides (via acid chloride) but two competing routes to esters? What does this imply about acid + ammonia directly?","It implies a direct, reversible acid + ammonia route analogous to Fischer esterification is not presented as a practical pathway to amides"],
+  ["Using the acidity order, can RCOO⁻ effectively deprotonate ROH? Justify.","No — RCOO⁻ is the conjugate base of a stronger acid (RCOOH) than ROH, so it is too weak a base to significantly deprotonate ROH"],
+  ["What does the reversibility of ester hydrolysis back to acid and alcohol reveal about the thermodynamic relationship between these states?","Ester+water and acid+alcohol lie on the same reversible equilibrium (with a modest equilibrium constant, ~4 for acetic acid/ethanol), rather than the ester being a one-way, irreversible product"],
+  ["Rank by expected esterification rate: (i) CH₃COOH+CH₃OH, (ii) R₃CCOOH+CH₃OH, (iii) CH₃COOH+tertiary alcohol.","(i) is fastest (least hindrance on both sides); (ii) and (iii) are both slower due to one-sided steric hindrance, each clearly behind (i)"],
+  ["Why does the text stress that even a mild base like NaHCO₃ fully converts benzoic acid to its salt?","It demonstrates that carboxylic acids are acidic enough that a common, mild base suffices, underlining that they are more acidic than any other common organic class"],
+  ["Explain why adding more H₂SO₄ catalyst to a Fischer esterification cannot, by itself, increase the equilibrium ester yield.","A catalyst lowers the activation energy for both directions of a reversible reaction without changing the relative thermodynamic stability of reactants versus products, so it speeds equilibration but cannot shift where the equilibrium lies"],
+  ["Predict the effect on ester yield if water were continuously removed during Fischer esterification, using Le Chatelier's principle.","Removing water shifts RCOOH + R'OH ⇌ RCOOR' + H₂O further to the right, increasing ester yield beyond the ~66% obtained under standard equilibrium conditions"],
+  ["Contrast the theoretical maximum yield for the acid-chloride route with that for direct esterification.","The acid-chloride route can, in principle, approach ~100% conversion at each step, while direct esterification is capped at the equilibrium value (~66% under 1:1 conditions) unless excess reactant or product removal is used"],
+  ["Explain why converting an acid to its acid chloride makes the carbonyl carbon far more electrophilic, and why that matters synthetically.","Replacing the poor leaving group OH with the excellent leaving group Cl increases electrophilicity at the carbonyl carbon, so a wide range of nucleophiles (alcohols, ammonia, water) can readily attack and displace chloride, making the acid chloride a versatile gateway to derivatives"],
+  ["Using the Ka expression, predict what happens to a carboxylic acid's ionization equilibrium if [H₃O⁺] is deliberately increased.","By Le Chatelier's principle, increasing [H₃O⁺] shifts RCOOH ⇌ RCOO⁻ + H₃O⁺ back toward un-ionized RCOOH, suppressing further ionization"],
+  ["Explain why 'acidity/salt formation' and 'conversion into functional derivatives' are treated as two distinct reaction categories, even though both alter the OH of COOH.","Salt formation is a reversible acid-base equilibrium where only the proton leaves (giving RCOO⁻), while derivative formation replaces the entire OH group with a different atom or group, producing a structurally distinct compound"],
+  ["Would converting mesitoic acid to its acid chloride necessarily remove its esterification difficulty? Explain.","Not necessarily — the steric hindrance from the ortho-methyl groups can still slow nucleophilic attack at the carbonyl carbon even with the more reactive acid chloride"],
+  ["Using both reactivity orders, identify the slowest- and fastest-esterifying acid–alcohol pairs named or implied in the text.","Slowest: R₃CCOOH with a tertiary alcohol (maximal combined hindrance); fastest: HCOOH with CH₃OH (minimal hindrance on both sides)"],
+  ["Explain why the text singles out drugs and hormones as ideal LiAlH₄ applications, connecting this to its expense.","Drugs and hormones are produced in small quantities at high value per gram, so LiAlH₄'s expense is easily justified there, unlike bulk, low-value fatty acid reduction"],
+  ["State, in one sentence, the shared strategic principle behind using excess ethanol for γ-phenylbutyric acid esterification and excess NH₃ for α-amino acid synthesis.","In both cases, a large excess of a cheap reagent is used to drive an equilibrium or competing-reaction system toward the desired product"],
+  ["If insufficient phosphorus were used in an attempted HVZ halogenation, what would likely happen?","Alpha-halogenation would proceed slowly or incompletely, since generation of the acid-halide intermediate that drives the reaction would be limited"],
+  ["Summarize why the choice between a reversible and an irreversible route matters when planning an efficient multi-step carboxylic acid synthesis.","Reversible steps cap the maximum yield at an equilibrium value unless conditions (excess reagent, product removal) are manipulated, while irreversible steps can approach complete conversion — so route choice directly affects overall synthetic efficiency"]
+]
+};
 
+let currentCardLevel = 'easy';
 const cardGrid = document.getElementById('cardGrid');
-flashcards.forEach(([q,a])=>{
-  const outer = document.createElement('div');
-  outer.className = 'flip-outer';
-  outer.innerHTML = `
-    <div class="flip-inner">
-      <div class="face front">${q}<span class="tap-hint">tap</span></div>
-      <div class="face back">${a}</div>
-    </div>
-  `;
-  outer.addEventListener('click',()=>outer.classList.toggle('flipped'));
-  cardGrid.appendChild(outer);
+const cardLevelTabs = document.getElementById('cardLevelTabs');
+
+function renderCards(level){
+  cardGrid.innerHTML = '';
+  flashcardsByLevel[level].forEach(([q,a])=>{
+    const outer = document.createElement('div');
+    outer.className = 'flip-outer';
+    outer.innerHTML = `
+      <div class="flip-inner">
+        <div class="face front">${q}<span class="tap-hint">tap</span></div>
+        <div class="face back">${a}</div>
+      </div>
+    `;
+    outer.addEventListener('click',()=>outer.classList.toggle('flipped'));
+    cardGrid.appendChild(outer);
+  });
+}
+
+cardLevelTabs.querySelectorAll('.level-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    cardLevelTabs.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCardLevel = btn.dataset.level;
+    renderCards(currentCardLevel);
+  });
 });
 
-/* ================= QUIZ DATA ================= */
-const quizBank = [
-  {q:"What two functional groups make up the carboxyl group?", correct:"A carbonyl group and a hydroxyl group", wrong:["Two hydroxyl groups","A carbonyl group and an amine group","An ester group and a hydroxyl group"]},
-  {q:"What is the most characteristic chemical property of carboxylic acids?", correct:"Acidity", wrong:["Reducing power","Basicity","Optical activity"]},
-  {q:"Which equilibrium describes carboxylic acid ionization in water?", correct:"RCOOH + H₂O ⇌ RCOO⁻ + H₃O⁺", wrong:["RCOOH + H₂O ⇌ RCOOH₂⁺ + OH⁻","RCOOH ⇌ RCO⁺ + OH⁻","RCOOH + OH⁻ ⇌ RCOOH₂⁺"]},
-  {q:"In the Ka expression for a carboxylic acid, a larger Ka means:", correct:"Greater ionization and a stronger acid", wrong:["Less ionization and a weaker acid","No relation to acid strength","A more basic carboxylate ion"]},
-  {q:"Why are carboxylate anions described as moderately basic?", correct:"They react with water and increase hydroxide ion concentration (hydrolysis)", wrong:["They react with water to release H₂ gas","They are completely unreactive with water","They lower the pH of water"]},
-  {q:"What effect does an alkyl group have on the O-H bond of an alcohol?", correct:"A +I effect that increases electron density on oxygen", wrong:["A -I effect that decreases electron density on oxygen","No measurable effect at all","It removes electron density from carbon only"]},
-  {q:"Why is alcohol a weaker acid than water?", correct:"Because the alkyl group's +I effect makes H⁺ release more difficult", wrong:["Because alcohol has no OH group","Because alcohol is a stronger base than water","Because alcohol cannot dissolve in water"]},
-  {q:"Complete the relative acidity order: RCOOH > HOH > ROH > ___ > NH₃ > RH", correct:"HC≡CH", wrong:["CH₄","RCOOR'","RCONH₂"]},
-  {q:"Which is the strongest base in this list?", correct:"R⁻", wrong:["RCOO⁻","HO⁻","RO⁻"]},
-  {q:"In R-COOH → R-CO-Z, which of the following is NOT a typical value of Z?", correct:"-OH", wrong:["-Cl","-OR'","-NH₂"]},
-  {q:"Which three reagents commonly convert a carboxylic acid into an acid chloride?", correct:"SOCl₂, PCl₃, and PCl₅", wrong:["NaOH, KOH, and LiOH","H₂SO₄, HNO₃, and HCl","LiAlH₄, NaBH₄, and H₂/Pt"]},
-  {q:"Why is thionyl chloride (SOCl₂) particularly convenient for making acid chlorides?", correct:"Its byproducts are gases that separate easily, and excess reagent distills off", wrong:["It is the cheapest possible reagent","It works without heating in all cases","It produces a solid byproduct that precipitates out"]},
-  {q:"Benzoic acid + SOCl₂ (reflux) produces benzoyl chloride plus which byproducts?", correct:"SO₂ and HCl", wrong:["CO₂ and H₂O","POCl₃ and HCl","H₂ and Cl₂"]},
-  {q:"3,5-Dinitrobenzoic acid + PCl₅ (heat) gives 3,5-dinitrobenzoyl chloride plus:", correct:"POCl₃ and HCl", wrong:["SO₂ and HCl","H₂O and CO₂","PCl₃ and Cl₂"]},
-  {q:"What is the direct route from a carboxylic acid to an ester?", correct:"Heating the acid with an alcohol in the presence of a little mineral acid", wrong:["Reacting the acid directly with NH₃","Reacting the acid with LiAlH₄","Heating the acid alone under vacuum"]},
-  {q:"Why is direct (Fischer) esterification considered reversible?", correct:"The same H⁺ catalyst speeds up both esterification and hydrolysis", wrong:["Esters are inherently unstable compounds","Water cannot be removed from the reaction","Alcohols always decompose acids"]},
-  {q:"One mole of acetic acid and one mole of ethanol reach equilibrium (with H₂SO₄) at approximately what product ratio?", correct:"Two-thirds mole ester and water, one-third mole acid and alcohol", wrong:["All acid and alcohol converted to ester and water","Half ester and water, half acid and alcohol","One-third ester and water, two-thirds acid and alcohol"]},
-  {q:"Why is the acid-chloride route often preferred over direct esterification?", correct:"Both steps (acid→chloride, chloride→ester) are essentially irreversible and go to completion", wrong:["It requires no catalyst at all","It is always a single-step process","Direct esterification cannot form esters at all"]},
-  {q:"To convert 1 mole of a valuable acid more completely into its ester, a chemist uses 8 moles of ethanol. This strategy relies on:", correct:"Using a cheap reactant in excess to shift the equilibrium toward products", wrong:["Increasing the reaction temperature only","Removing the catalyst entirely","Adding extra water to the mixture"]},
-  {q:"What effect does steric hindrance near the reacting site have on esterification?", correct:"It slows down both esterification and its reverse, hydrolysis", wrong:["It has no effect on the reaction rate","It speeds up esterification only","It stops hydrolysis completely while speeding up esterification"]},
-  {q:"Which alcohol reacts fastest in esterification?", correct:"CH₃OH (methanol)", wrong:["A tertiary alcohol","A secondary alcohol","A bulky primary alcohol"]},
-  {q:"Which acid is least reactive in esterification?", correct:"R₃CCOOH", wrong:["HCOOH","CH₃COOH","RCH₂COOH"]},
-  {q:"Mesitoic acid (2,4,6-trimethylbenzoic acid) needs special esterification methods because of:", correct:"Steric hindrance from the bulky ortho-methyl groups", wrong:["Its unusually high acidity","Its lack of a carbonyl group","Its inability to dissolve in alcohol"]},
-  {q:"How are amides most commonly prepared from carboxylic acids?", correct:"Acid → acid chloride, then acid chloride + ammonia", wrong:["Acid + ammonia directly, with no intermediate","Acid + LiAlH₄, then hydrolysis","Acid + alcohol, then reduction"]},
-  {q:"Phenylacetic acid is converted to phenylacetyl chloride using:", correct:"SOCl₂", wrong:["NH₃","LiAlH₄","NaOH"]},
-  {q:"Which reagent is one of the few that reduces a carboxylic acid directly to an alcohol?", correct:"LiAlH₄", wrong:["H₂/Pd catalyst","NaOH","SOCl₂"]},
-  {q:"What is the initial product when LiAlH₄ reduces a carboxylic acid?", correct:"An alkoxide, later hydrolyzed to the alcohol", wrong:["An acid chloride","An ester directly","A ketone"]},
-  {q:"Why is LiAlH₄ mainly reserved for small-scale industrial use?", correct:"It is expensive", wrong:["It is too weak a reducing agent","It only works on aromatic acids","It cannot be used in a laboratory setting"]},
-  {q:"What is the two-step alternative to direct LiAlH₄ reduction of an acid?", correct:"Esterification, followed by reduction of the ester", wrong:["Halogenation, followed by hydrolysis","Salt formation, followed by distillation","Amide formation, followed by reduction"]},
-  {q:"What does the Hell-Volhard-Zelinsky (HVZ) reaction accomplish?", correct:"Alpha-halogenation of an aliphatic carboxylic acid", wrong:["Reduction of an acid to an alcohol","Conversion of an acid to an ester","Formation of a carboxylate salt"]},
-  {q:"What is the true function of phosphorus in the HVZ reaction?", correct:"It converts a small amount of the acid into acid halide, which drives alpha-halogenation", wrong:["It acts as a solvent for the reaction only","It directly halogenates the alpha-carbon itself","It absorbs excess halogen gas"]},
-  {q:"After CH₃CH₂COOH reacts once with Br₂/P, further reaction with Br₂/P at the same alpha-carbon gives what result once fully substituted?", correct:"No further substitution occurs", wrong:["Substitution continues indefinitely down the chain","The carboxyl group is replaced by bromine","The molecule spontaneously decomposes"]},
-  {q:"An alpha-halogenated acid reacting with a large excess of NH₃ produces:", correct:"An α-amino acid", wrong:["An α-hydroxy acid","An α,β-unsaturated acid","An acid chloride"]},
-  {q:"An alpha-halogenated acid reacting with NaOH (then H⁺) produces:", correct:"An α-hydroxy acid", wrong:["An α-amino acid","An ester","An α,β-unsaturated acid"]},
-  {q:"A beta-halogenated acid reacting with alcoholic KOH produces:", correct:"An α,β-unsaturated acid", wrong:["An α-amino acid","An α-hydroxy acid","A carboxylate salt only"]},
-  {q:"Acetic acid + Zn produces zinc acetate plus which gas?", correct:"H₂", wrong:["CO₂","O₂","Cl₂"]},
-  {q:"Benzoic acid + NaHCO₃ produces sodium benzoate plus water and:", correct:"CO₂", wrong:["H₂","SO₂","NH₃"]},
-  {q:"Lauric acid + NaOH produces sodium laurate plus:", correct:"H₂O", wrong:["H₂","CO₂","HCl"]}
-];
+renderCards(currentCardLevel);
+
+/* ================= QUIZ DATA (3 levels) ================= */
+const quizBankByLevel = {
+easy: [
+  {q:"What two functional groups make up the carboxyl group (COOH)?", correct:"A carbonyl group and a hydroxyl group", wrong:["Two carbonyl groups", "A carbonyl group and an amine group", "An ester group and a hydroxyl group"]},
+  {q:"What is the most characteristic chemical property of carboxylic acids?", correct:"Acidity", wrong:["Basicity", "Reducing power", "Optical activity"]},
+  {q:"Which equilibrium correctly describes carboxylic acid ionization in water?", correct:"RCOOH + H₂O ⇌ RCOO⁻ + H₃O⁺", wrong:["RCOOH + H₂O ⇌ RCOOH₂⁺ + OH⁻", "RCOOH ⇌ RCO⁺ + OH⁻", "RCOOH + OH⁻ ⇌ RCOOH₂⁺"]},
+  {q:"What is the correct Ka expression for a carboxylic acid?", correct:"Ka = [RCOO⁻][H₃O⁺] / [RCOOH]", wrong:["Ka = [RCOOH] / [RCOO⁻][H₃O⁺]", "Ka = [RCOOH][H₃O⁺] / [RCOO⁻]", "Ka = [RCOO⁻] / [H₃O⁺]"]},
+  {q:"A larger Ka value indicates:", correct:"Greater ionization and a stronger acid", wrong:["Less ionization and a weaker acid", "No relation to acid strength", "A more basic carboxylate ion"]},
+  {q:"Carboxylate anions (RCOO⁻) are best described as:", correct:"Moderately basic", wrong:["Strongly acidic", "Completely neutral", "Non-reactive with water"]},
+  {q:"What does the hydrolysis of RCOO⁻ in water produce?", correct:"RCOOH and OH⁻", wrong:["RCOOH and H₃O⁺", "RCOOH and H₂", "RCO⁻ and H₂O₂"]},
+  {q:"Complete the acidity order: RCOOH > HOH > ROH > ___ > NH₃ > RH", correct:"HC≡CH", wrong:["CH₄", "RCOOR'", "RCONH₂"]},
+  {q:"Which species is the strongest base in this list?", correct:"R⁻", wrong:["RCOO⁻", "HO⁻", "RO⁻"]},
+  {q:"What kind of electronic effect does an alkyl group exert?", correct:"+I (electron-donating inductive) effect", wrong:["-I (electron-withdrawing inductive) effect", "Resonance donating effect only", "No electronic effect"]},
+  {q:"Compared to water, an alcohol (ROH) is:", correct:"A weaker acid", wrong:["A stronger acid", "Equally acidic", "Not acidic at all"]},
+  {q:"Acetic acid + Zn produces zinc acetate plus which gas?", correct:"H₂", wrong:["CO₂", "O₂", "Cl₂"]},
+  {q:"Lauric acid + NaOH produces sodium laurate plus:", correct:"H₂O", wrong:["H₂", "CO₂", "HCl"]},
+  {q:"Benzoic acid + NaHCO₃ produces sodium benzoate plus water and:", correct:"CO₂", wrong:["H₂", "SO₂", "NH₃"]},
+  {q:"In R-COOH → R-CO-Z, which of the following is NOT a typical value of Z?", correct:"-OH", wrong:["-Cl", "-OR'", "-NH₂"]},
+  {q:"A carboxylic acid is most often converted into which functional derivative?", correct:"The acid chloride", wrong:["The amide", "The nitrile", "The anhydride"]},
+  {q:"An acid chloride is prepared by substituting Cl for which group of the carboxylic acid?", correct:"OH", wrong:["C=O", "The alpha-hydrogen", "The entire COOH group"]},
+  {q:"Which three reagents commonly convert a carboxylic acid into an acid chloride?", correct:"SOCl₂, PCl₃, and PCl₅", wrong:["NaOH, KOH, and LiOH", "H₂SO₄, HNO₃, and HCl", "LiAlH₄, NaBH₄, and H₂/Pt"]},
+  {q:"What is thionyl chloride's formula?", correct:"SOCl₂", wrong:["SO₂Cl₂", "PCl₃", "POCl₃"]},
+  {q:"Why is thionyl chloride particularly convenient for making acid chlorides?", correct:"Its byproducts are gases that separate easily, and excess reagent distills off", wrong:["It is the cheapest possible reagent", "It works without heating in all cases", "It produces a solid byproduct that precipitates out"]},
+  {q:"Benzoic acid + SOCl₂ (reflux) produces benzoyl chloride plus which byproducts?", correct:"SO₂ and HCl", wrong:["CO₂ and H₂O", "POCl₃ and HCl", "H₂ and Cl₂"]},
+  {q:"3,5-Dinitrobenzoic acid + PCl₅ (heat) gives 3,5-dinitrobenzoyl chloride plus:", correct:"POCl₃ and HCl", wrong:["SO₂ and HCl", "H₂O and CO₂", "PCl₃ and Cl₂"]},
+  {q:"What is the direct route from a carboxylic acid to an ester?", correct:"Heating the acid with an alcohol in the presence of a little mineral acid", wrong:["Reacting the acid directly with NH₃", "Reacting the acid with LiAlH₄", "Heating the acid alone under vacuum"]},
+  {q:"Direct (Fischer) esterification is:", correct:"Reversible", wrong:["Irreversible", "Explosive", "Non-catalyzed"]},
+  {q:"Benzoic acid + methanol (H⁺) produces:", correct:"Methyl benzoate + water", wrong:["Benzoyl chloride + HCl", "Sodium benzoate + H₂", "Benzamide + water"]},
+  {q:"Acetic acid + benzyl alcohol (H⁺) produces:", correct:"Benzyl acetate + water", wrong:["Acetyl chloride + water", "Benzoic acid + ethanol", "Benzaldehyde + water"]},
+  {q:"In the acetic acid + ethanol equilibrium (with H₂SO₄), roughly what fraction converts to ester and water?", correct:"About two-thirds", wrong:["About one-third", "Essentially all of it", "None of it"]},
+  {q:"What catalyzes both the forward (esterification) and reverse (hydrolysis) reactions in Fischer esterification?", correct:"H⁺ (hydrogen ion)", wrong:["OH⁻", "Water alone", "Heat alone, with no catalyst"]},
+  {q:"Why is the acid-chloride route often preferred over direct esterification for valuable acids?", correct:"Both steps are essentially irreversible and go to completion", wrong:["It requires no catalyst at all", "It is always a single-step process", "Direct esterification cannot form esters at all"]},
+  {q:"How many moles of ethanol were used to convert 1 mole of γ-phenylbutyric acid more completely into its ester?", correct:"8 moles", wrong:["1 mole", "2 moles", "20 moles"]},
+  {q:"What yield of ethyl γ-phenylbutyrate is reported using excess ethanol?", correct:"85–88%", wrong:["10–15%", "33%", "100%"]},
+  {q:"Bulky groups near the reacting site in esterification:", correct:"Slow down both esterification and hydrolysis", wrong:["Speed up esterification only", "Have no effect on rate", "Stop hydrolysis completely while speeding esterification"]},
+  {q:"Which alcohol reacts fastest in esterification?", correct:"CH₃OH (methanol)", wrong:["A tertiary alcohol", "A secondary alcohol", "A bulky primary alcohol"]},
+  {q:"Which acid is least reactive in esterification?", correct:"R₃CCOOH", wrong:["HCOOH", "CH₃COOH", "RCH₂COOH"]},
+  {q:"Mesitoic acid is another name for:", correct:"2,4,6-Trimethylbenzoic acid", wrong:["Benzoic acid", "3,5-Dinitrobenzoic acid", "Phenylacetic acid"]},
+  {q:"In an amide, the OH of the carboxylic acid is replaced by:", correct:"NH₂", wrong:["Cl", "OR'", "Br"]},
+  {q:"Amides are generally prepared by reacting an acid chloride with:", correct:"Ammonia (NH₃)", wrong:["An alcohol", "LiAlH₄", "Water"]},
+  {q:"Phenylacetic acid is converted to phenylacetyl chloride using:", correct:"SOCl₂", wrong:["NH₃", "LiAlH₄", "NaOH"]},
+  {q:"Phenylacetyl chloride + NH₃ produces:", correct:"Phenylacetamide", wrong:["Phenylacetic acid", "Ethyl phenylacetate", "Benzamide"]},
+  {q:"Which reagent is one of the few that reduces a carboxylic acid directly to an alcohol?", correct:"LiAlH₄", wrong:["H₂/Pd catalyst", "NaOH", "SOCl₂"]},
+  {q:"What is the initial product when LiAlH₄ reduces a carboxylic acid?", correct:"An alkoxide", wrong:["An acid chloride", "An ester directly", "A ketone"]},
+  {q:"How is the free alcohol obtained from the LiAlH₄ reduction's initial product?", correct:"By hydrolysis", wrong:["By distillation only", "By oxidation", "By reaction with NH₃"]},
+  {q:"Why is LiAlH₄ mainly reserved for small-scale industrial use?", correct:"It is expensive", wrong:["It is too weak a reducing agent", "It only works on aromatic acids", "It cannot be used in a laboratory setting"]},
+  {q:"What is the two-step alternative to direct LiAlH₄ reduction of an acid?", correct:"Esterification, followed by reduction of the ester", wrong:["Halogenation, followed by hydrolysis", "Salt formation, followed by distillation", "Amide formation, followed by reduction"]},
+  {q:"Acetic acid reduced with LiAlH₄ (then H⁺) gives:", correct:"Ethanol", wrong:["Methanol", "Acetaldehyde", "Ethylene glycol"]},
+  {q:"m-Toluic acid reduced with LiAlH₄ gives:", correct:"m-Methylbenzyl alcohol", wrong:["m-Cresol", "Toluene", "Benzyl alcohol"]},
+  {q:"What does the Hell-Volhard-Zelinsky (HVZ) reaction accomplish?", correct:"Alpha-halogenation of an aliphatic carboxylic acid", wrong:["Reduction of an acid to an alcohol", "Conversion of an acid to an ester", "Formation of a carboxylate salt"]},
+  {q:"The HVZ reaction requires a small amount of which element?", correct:"Phosphorus", wrong:["Sulfur", "Nitrogen", "Silicon"]},
+  {q:"What is the true function of phosphorus in the HVZ reaction?", correct:"It converts a small amount of the acid into acid halide, which drives alpha-halogenation", wrong:["It acts as a solvent for the reaction only", "It directly halogenates the alpha-carbon itself", "It absorbs excess halogen gas"]},
+  {q:"Full chlorination of acetic acid (three HVZ cycles) yields:", correct:"Cl₃CCOOH", wrong:["ClCH₂COOH only", "Cl₂CHCOOH only", "CCl₄"]},
+  {q:"After CH₃CH₂COOH reacts twice with Br₂/P, further reaction with Br₂/P gives what result?", correct:"No further substitution occurs", wrong:["Substitution continues indefinitely down the chain", "The carboxyl group is replaced by bromine", "The molecule spontaneously decomposes"]},
+  {q:"An alpha-halogenated acid reacting with a large excess of NH₃ produces:", correct:"An α-amino acid", wrong:["An α-hydroxy acid", "An α,β-unsaturated acid", "An acid chloride"]},
+  {q:"An alpha-halogenated acid reacting with NaOH (then H⁺) produces:", correct:"An α-hydroxy acid", wrong:["An α-amino acid", "An ester", "An α,β-unsaturated acid"]},
+  {q:"Treating a halogenated acid with alcoholic KOH produces, by elimination:", correct:"An α,β-unsaturated acid", wrong:["An α-amino acid", "An α-hydroxy acid", "A carboxylate salt only"]},
+  {q:"The halogen in these halogenated acids behaves chemically most like the halogen in:", correct:"Simple alkyl halides", wrong:["Aryl halides only", "Acid chlorides only", "Halogens dissolved in water"]},
+  {q:"What does the note say about the rest of the molecule beyond the COOH group?", correct:"It undergoes reactions characteristic of its own structure", wrong:["It is chemically inert in all cases", "It always reacts identically to the COOH group", "It prevents the COOH group from reacting"]},
+  {q:"Which of these is TRUE about carboxylic acids compared to other classes of organic compounds?", correct:"They are much more acidic", wrong:["They are much less acidic", "They are equally acidic to alcohols", "They show no measurable ionization in water"]},
+  {q:"What is formed when trimethylacetic acid reacts with SOCl₂ and then ethanol?", correct:"Ethyl trimethylacetate", wrong:["Trimethylacetamide", "Trimethylacetic anhydride", "Methyl trimethylacetate"]},
+  {q:"Which mineral acids are commonly used to catalyze direct esterification?", correct:"Concentrated sulfuric acid or dry hydrogen chloride", wrong:["Dilute nitric acid or dilute HCl", "Phosphoric acid only", "Acetic acid itself"]},
+  {q:"Esters can be reduced to alcohols using methods that are:", correct:"Adaptable to both laboratory and industrial scale", wrong:["Only usable in the laboratory", "Only usable in industry", "Impossible with any known reagent"]}
+],
+medium: [
+  {q:"Why is the OH of carboxylic acid so much more reactive than the OH of a simple alcohol?", correct:"Because the adjacent C=O makes loss of H⁺ or substitution possible", wrong:["Because it forms hydrogen bonds more easily", "Because it is a stronger nucleophile", "Because it has a lower molecular weight"]},
+  {q:"Why does an alkyl group make ROH a weaker acid than water?", correct:"Its +I effect raises electron density on oxygen, making H⁺ release harder", wrong:["It withdraws electron density from oxygen, favoring ionization", "It has no measurable effect on acidity", "It hydrogen-bonds more strongly, trapping H⁺"]},
+  {q:"Where does HC≡CH sit on the given acidity scale relative to NH₃ and ROH?", correct:"Between ROH and NH₃ — weaker acid than ROH but stronger than NH₃", wrong:["Stronger than RCOOH", "Weaker than NH₃", "Equal in acidity to RCOOH"]},
+  {q:"Why is RCOO⁻ only 'moderately' basic rather than strongly basic?", correct:"Because its conjugate acid, RCOOH, is a relatively strong acid", wrong:["Because RCOO⁻ cannot dissolve in water", "Because RCOO⁻ has no lone pairs on oxygen", "Because RCOOH is a very weak acid"]},
+  {q:"Why can a weak base like NaHCO₃ fully convert benzoic acid to its salt?", correct:"Carboxylic acids are acidic enough to react even with weak bases", wrong:["NaHCO₃ is actually a strong base", "Benzoic acid is a very weak acid", "The reaction does not go to completion"]},
+  {q:"From a single acid chloride intermediate, which two classes of derivatives can typically be made?", correct:"Esters and amides", wrong:["Only esters", "Only amides", "Alkanes and alkenes"]},
+  {q:"SOCl₂ with an acid gives SO₂ and HCl. PCl₅ with an acid gives:", correct:"POCl₃ and HCl", wrong:["SO₂ and HCl", "PCl₃ and Cl₂", "H₂O and CO₂"]},
+  {q:"Why doesn't excess thionyl chloride contaminate the final acid chloride product?", correct:"Its low boiling point lets it be removed easily by distillation", wrong:["It reacts completely, leaving no excess ever", "It precipitates out as a solid", "It evaporates spontaneously only above 500°C"]},
+  {q:"Why is direct esterification called reversible while the acid-chloride route is essentially irreversible?", correct:"H⁺ catalyzes both the forward and reverse reaction in direct esterification, while the acid-chloride steps go to completion", wrong:["Direct esterification uses no catalyst at all", "The acid-chloride route always requires heat to proceed", "Direct esterification produces no water"]},
+  {q:"Starting Fischer esterification from 1 mole ester + 1 mole water instead of acid + alcohol leads to:", correct:"The same equilibrium mixture (~2/3 ester+water, ~1/3 acid+alcohol)", wrong:["Complete conversion to acid and alcohol", "No reaction at all", "A completely different equilibrium ratio"]},
+  {q:"Why use 8 moles of ethanol to esterify 1 mole of γ-phenylbutyric acid?", correct:"The large excess of the cheap reactant shifts equilibrium toward more ester", wrong:["Ethanol is required stoichiometrically in that ratio", "Excess ethanol prevents any reaction from occurring", "It converts the reaction to an irreversible one automatically"]},
+  {q:"If an acid is expensive and its alcohol partner is cheap, which reactant should be used in excess to maximize ester yield?", correct:"The alcohol", wrong:["The acid", "Neither — excess never helps", "The catalyst only"]},
+  {q:"Why does steric hindrance slow BOTH esterification and hydrolysis?", correct:"Both go through the same hindered transition state, so hindering it slows both directions", wrong:["Only esterification is affected by sterics, not hydrolysis", "Steric hindrance only affects gas-phase reactions", "Hydrolysis has no transition state to hinder"]},
+  {q:"Why does mesitoic acid need special esterification methods?", correct:"Its ortho-methyl groups create steric hindrance next to the carboxyl group", wrong:["It is not acidic enough to react", "It decomposes at room temperature", "It lacks a carbonyl group"]},
+  {q:"Why are amides made from acid chlorides rather than directly from acid + ammonia?", correct:"The acid chloride is far more reactive, so ammonia reacts with it more cleanly", wrong:["Ammonia cannot react with any carbonyl compound", "Amides cannot form from carboxylic acids at all", "Acid + ammonia can only ever form a salt, with no further chemistry possible"]},
+  {q:"Why is reduction of fatty acids to alcohols practically important, given the usual availability trend?", correct:"Long-chain acids from fats are more available than the corresponding alcohols, reversing the usual case", wrong:["Alcohols from fats are always more available than acids", "Fats contain no carboxylic acids at all", "Reduction is never used industrially"]},
+  {q:"Why must the alkoxide from LiAlH₄ reduction be hydrolyzed?", correct:"Because the direct reduction product is a metal alkoxide salt, not the free alcohol", wrong:["Because LiAlH₄ produces an ester, not an alkoxide", "Because hydrolysis is needed to add the LiAlH₄", "Because the alkoxide is explosive without hydrolysis"]},
+  {q:"Why does industry reserve LiAlH₄ mainly for drugs and hormones rather than bulk fatty acids?", correct:"LiAlH₄ is expensive, so it's only economical for small amounts of valuable material", wrong:["LiAlH₄ cannot reduce fatty acids at all", "Drugs and hormones cannot be made any other way", "Bulk fatty acids are chemically unreactive toward LiAlH₄"]},
+  {q:"How can an odd-carbon alcohol be obtained if only even-carbon fatty acids are naturally available?", correct:"By increasing the chain length by one carbon during synthesis", wrong:["It is chemically impossible to obtain odd-carbon alcohols this way", "By using LiAlH₄ twice in a row", "By halving the chain length"]},
+  {q:"Why is the HVZ reaction valued in synthesis despite substituting only one hydrogen per cycle?", correct:"Its high specificity (alpha-only) and the ease with which it proceeds", wrong:["It substitutes every hydrogen in the molecule at once", "It requires no reagents at all", "It only works on aromatic acids"]},
+  {q:"How does phosphorus enable alpha-halogenation without itself halogenating the alpha carbon directly?", correct:"It first converts a little acid into acid halide, and the acid halide undergoes the actual halogenation", wrong:["Phosphorus directly attacks the alpha-hydrogen", "Phosphorus acts only as a drying agent", "Phosphorus absorbs the halogen so it cannot react"]},
+  {q:"Why does CH₃CH₂COOH stop after two bromination cycles with no further substitution?", correct:"Its alpha carbon only had two hydrogens to begin with, and both are now replaced", wrong:["Bromine ran out in the reaction vessel", "The carboxyl group blocks further substitution automatically", "Phosphorus is consumed after exactly two cycles"]},
+  {q:"Why can CH₃COOH be halogenated three times, but CH₃CH₂COOH only twice?", correct:"Acetic acid's alpha carbon starts with three H's; propionic acid's alpha carbon starts with only two", wrong:["Acetic acid reacts by a completely different mechanism", "Propionic acid is not compatible with the HVZ reaction", "Acetic acid has two alpha carbons"]},
+  {q:"Why do alpha-halo acids react with NaOH or NH₃ similarly to how alkyl halides do?", correct:"Because the C–X bond behaves like an ordinary alkyl halide, open to nucleophilic substitution", wrong:["Because the carboxyl group directly bonds to NaOH first", "Because alpha-halo acids contain no reactive halogen", "Because NaOH cannot react with any halide"]},
+  {q:"What key difference separates the reaction of an alpha-halo acid with NaOH from its reaction with alcoholic KOH?", correct:"NaOH gives substitution (α-hydroxy acid); alcoholic KOH gives elimination (α,β-unsaturated acid)", wrong:["Both reagents always give the identical product", "NaOH gives elimination while alcoholic KOH gives substitution", "Neither reagent reacts with alpha-halo acids"]},
+  {q:"Why is a 'large excess' of NH₃ specified for converting an alpha-halo acid to an alpha-amino acid?", correct:"To favor substitution by ammonia and drive the reaction toward the amino acid product", wrong:["Because NH₃ does not react with alpha-halo acids in small amounts", "Because excess NH₃ prevents any reaction from occurring", "Because a small amount of NH₃ produces an explosive byproduct"]},
+  {q:"In the sequence P + X₂ → PX₃, then RCH₂COOH + PX₃ → RCH₂COX, what species is generated that goes on to be halogenated?", correct:"The reactive acid halide (RCH₂COX)", wrong:["A stable carboxylate salt", "An alkoxide intermediate", "An amide"]},
+  {q:"What allows HVZ halogenation to proceed with only a small, catalytic amount of phosphorus?", correct:"A halogen-exchange step regenerates acid halide from fresh unreacted acid", wrong:["Phosphorus is regenerated by reacting with the carboxylate ion", "Phosphorus is not actually consumed in any step", "Excess halogen gas replaces the need for phosphorus after the first cycle"]},
+  {q:"Why does the text stress that Ka allows comparing acid strengths 'in an exact way'?", correct:"Because Ka is a precise numerical equilibrium constant, unlike qualitative labels", wrong:["Because Ka is always equal to 1 for carboxylic acids", "Because Ka cannot actually be measured experimentally", "Because Ka only applies to inorganic acids"]},
+  {q:"What is the functional relationship between C=O and OH within the carboxyl group?", correct:"OH does the chemistry (loses H⁺ or is replaced), while C=O provides the electronic effect enabling it", wrong:["C=O does all the chemistry while OH is inert", "Both groups react completely independently with no interaction", "OH stabilizes C=O but never itself reacts"]},
+  {q:"Compare the number of steps for making an ester by the direct route versus the acid-chloride route.", correct:"Direct: one step; acid-chloride: two steps", wrong:["Direct: two steps; acid-chloride: one step", "Both routes require exactly three steps", "Both routes are single-step processes"]},
+  {q:"Why might a chemist still choose the two-step acid-chloride route despite direct esterification being simpler?", correct:"The acid-chloride route is essentially irreversible and goes to completion, giving reliable, high conversion", wrong:["The acid-chloride route is always faster regardless of yield concerns", "Direct esterification cannot ever form an ester", "The acid-chloride route requires no extra reagents"]},
+  {q:"What would happen to ester yield in Fischer esterification if no reactant were used in excess?", correct:"The reaction would settle at the natural equilibrium mixture (~66% ester)", wrong:["The reaction would go to 100% completion regardless", "No ester would form at all", "The reaction would immediately reverse to pure starting materials"]},
+  {q:"Why does zinc react with a carboxylic acid to release hydrogen gas?", correct:"The acid's ionizable H⁺ reacts with the metal like with any active metal", wrong:["Zinc catalyzes decomposition of the carbonyl group", "Carboxylic acids do not actually contain any acidic hydrogen", "Zinc reacts only with esters, not acids"]},
+  {q:"What determines the choice between SOCl₂ and a phosphorus halide for preparing an acid chloride?", correct:"Ease of separating byproducts — SOCl₂'s gaseous byproducts simplify purification", wrong:["SOCl₂ never works with aromatic acids", "Phosphorus halides are always cheaper", "Only phosphorus halides can react with acids at all"]},
+  {q:"Why can an aromatic acid like benzoic acid still undergo the same general acid chloride/ester/amide reactions as a simple aliphatic acid?", correct:"These reactions are governed by the shared -COOH group; the aromatic ring doesn't block that reactivity", wrong:["Aromatic rings react identically to the alpha carbon in aliphatic acids", "Benzoic acid does not actually contain a COOH group", "Aromatic acids cannot form acid chlorides"]},
+  {q:"If a chemist wants an alpha-hydroxy acid from a fatty acid, what two-step sequence is used?", correct:"Alpha-halogenate the acid (HVZ), then treat with NaOH followed by H⁺", wrong:["Alpha-halogenate the acid, then treat with excess NH₃", "Reduce the acid with LiAlH₄, then treat with HVZ", "Esterify the acid, then treat with alcoholic KOH"]},
+  {q:"Why does converting an acid to an ester or amide via the acid chloride avoid the reversibility issue seen in direct esterification?", correct:"Acid chlorides are reactive enough that their reactions with alcohols or ammonia go essentially to completion", wrong:["Acid chlorides cannot react with alcohols or ammonia at all", "The acid-chloride route uses no catalyst, preventing any reverse reaction chemically", "Direct esterification and the acid-chloride route are mechanistically identical"]},
+  {q:"Rank basicity from weakest to strongest per the given order.", correct:"RCOO⁻ < HO⁻ < RO⁻ < R⁻", wrong:["R⁻ < RO⁻ < HO⁻ < RCOO⁻", "HO⁻ < RCOO⁻ < R⁻ < RO⁻", "RO⁻ < R⁻ < RCOO⁻ < HO⁻"]},
+  {q:"Which acid-alcohol combination would be expected to esterify fastest, based on the reactivity orders?", correct:"HCOOH with CH₃OH", wrong:["R₃CCOOH with a tertiary alcohol", "R₂CHCOOH with a secondary alcohol", "RCH₂COOH with a tertiary alcohol"]},
+  {q:"Which pairing best illustrates why steric hindrance is described as affecting 'either the alcohol or the acid'?", correct:"A hindered acid slows esterification just as a hindered alcohol does", wrong:["Only hindered alcohols ever slow esterification", "Only hindered acids ever slow esterification", "Steric hindrance from the alcohol accelerates the reaction"]},
+  {q:"Given that RCOOH is more acidic than HOH, what does that imply about the relative basicity of RCOO⁻ versus HO⁻?", correct:"RCOO⁻ is a weaker base than HO⁻", wrong:["RCOO⁻ is a stronger base than HO⁻", "They must be equally basic", "No relationship can be inferred"]},
+  {q:"Why does the text single out 'excellent yields' as a reason LiAlH₄ is widely used in the lab, despite being expensive?", correct:"High yield matters more than cost for small-scale laboratory work", wrong:["LiAlH₄ is actually the cheapest reducing agent available", "Excellent yields eliminate the need for any purification", "Cost is irrelevant to any laboratory decision"]},
+  {q:"Why does the text mention that esters 'can be reduced in a number of ways adaptable to both laboratory and industry'?", correct:"To highlight that the two-step (esterify-then-reduce) route has practical, scalable alternatives to direct LiAlH₄ reduction", wrong:["To show that ester reduction is impossible in industry", "To argue that LiAlH₄ is the only method that ever works on esters", "To suggest esters cannot be reduced in a laboratory setting"]},
+  {q:"What does the halogen-exchange step in the HVZ mechanism (RCHXCOX + RCH₂COOH → RCHXCOOH + RCH₂COX) accomplish overall?", correct:"It transfers the halogenated identity to a fresh acid molecule while regenerating acid halide", wrong:["It permanently deactivates phosphorus after one cycle", "It converts the halogenated product back into a fully unhalogenated acid with no further use", "It produces a different halogen atom entirely"]},
+  {q:"Why is 'elimination' the correct term for the alcoholic-KOH reaction of a halogenated acid, rather than 'substitution'?", correct:"A beta-hydrogen and the alpha-halide leave together, forming a C=C double bond instead of installing a new substituent", wrong:["Because the halogen atom is not actually removed in this reaction", "Because no hydrogen atoms are involved in this reaction", "Because the carboxyl group itself is eliminated"]},
+  {q:"In the direct esterification example using conc. H₂SO₄, what dual role does H₂SO₄ play regarding reaction direction?", correct:"It catalyzes both esterification and its reverse, hydrolysis", wrong:["It catalyzes esterification only, with no effect on hydrolysis", "It prevents hydrolysis from occurring entirely", "It acts only as a drying agent with no catalytic role"]},
+  {q:"Why does the presence of bulky groups matter for BOTH forming AND breaking an ester bond?", correct:"Both processes proceed through the same hindered transition state region near the carbonyl carbon", wrong:["Ester formation and hydrolysis use completely unrelated mechanisms", "Bulky groups only affect the alcohol, never the acid, in either process", "Hydrolysis does not involve the carbonyl carbon at all"]},
+  {q:"What would likely happen if insufficient phosphorus were used in an attempted HVZ halogenation?", correct:"Alpha-halogenation would proceed slowly or incompletely, since acid halide generation would be limited", wrong:["The reaction would halogenate the aromatic ring instead", "The carboxylic acid would spontaneously decompose", "No effect — phosphorus amount is irrelevant to the reaction"]},
+  {q:"Which best explains why direct esterification is described as advantageous despite being reversible?", correct:"It is a single-step synthesis that can still be made useful with knowledge of equilibria (e.g., excess reactant)", wrong:["It always gives a higher yield than the acid-chloride route", "It requires no acid catalyst at all", "It never produces water as a byproduct"]}
+],
+hard: [
+  {q:"A synthesis needs high-yield ethyl γ-phenylbutyrate without using an acid chloride. What is the described strategy and why does it work?", correct:"Use a large excess of cheap ethanol under H₂SO₄ reflux to shift the Fischer esterification equilibrium toward ester", wrong:["Use exactly stoichiometric ethanol with no catalyst", "Use excess γ-phenylbutyric acid instead of excess ethanol", "Remove the catalyst partway through the reaction"]},
+  {q:"Why is it poor economic practice to reduce bulk quantities of a common fatty acid with LiAlH₄ industrially?", correct:"LiAlH₄'s expense only makes sense for small amounts of high-value material; a cheaper two-step (esterify, then reduce) route exists for bulk feedstocks", wrong:["LiAlH₄ cannot chemically reduce fatty acids at all", "Fatty acids are not compatible with any reduction method", "LiAlH₄ only works on aromatic compounds"]},
+  {q:"Why can acetic acid be halogenated three times via HVZ, but propionic acid stops after two?", correct:"Acetic acid's alpha carbon (CH₃) starts with three hydrogens, while propionic acid's alpha carbon (CH₂) starts with only two", wrong:["Propionic acid does not have an alpha carbon", "Acetic acid reacts by a completely different mechanism", "Propionic acid's carboxyl group blocks further halogenation"]},
+  {q:"Why does the HVZ reaction require only a catalytic, not stoichiometric, amount of phosphorus?", correct:"A halogen-exchange equilibrium regenerates acid halide from fresh acid, propagating halogenation through the whole batch", wrong:["Phosphorus is not actually consumed in the mechanism at any point", "Only a fixed maximum number of molecules can ever be halogenated regardless of phosphorus amount", "Excess halogen gas performs the role of phosphorus after the first cycle"]},
+  {q:"Between R₃CCOOH and HCOOH esterifying with the same alcohol, which is faster and why?", correct:"HCOOH is faster; it has no steric bulk near the carboxyl carbon, matching the top of the acid-reactivity order", wrong:["R₃CCOOH is faster because tertiary character stabilizes reactive intermediates", "Both react at identical rates regardless of substitution", "Neither acid can undergo esterification under any conditions"]},
+  {q:"Why does a tertiary alcohol react slowly in Fischer esterification, contrary to typical SN1 expectations for tertiary substrates?", correct:"Esterification rate depends on steric hindrance at the reacting oxygen/carbon, not carbocation stability, so bulky tertiary alcohols are slowest", wrong:["Tertiary alcohols cannot form esters under any circumstances", "Tertiary alcohols react through an SN1 pathway that is always fastest in esterification too", "Steric hindrance does not apply to alcohols, only to acids"]},
+  {q:"Why does the equilibrium mixture end up identical whether you start from 1 mol acid + 1 mol alcohol, or from 1 mol ester + 1 mol water?", correct:"The same H⁺ catalyst accelerates both directions equally without shifting the equilibrium position, so the system reaches the same thermodynamic point either way", wrong:["Starting materials are chemically identical to products in this reaction", "The catalyst only works in the forward direction, making the outcomes coincidentally similar", "Water and alcohol are the same molecule under these conditions"]},
+  {q:"Using the ~2/3 : 1/3 product-to-reactant ratio from the acetic acid/ethanol esterification, what is the approximate equilibrium constant?", correct:"Approximately 4", wrong:["Approximately 1", "Approximately 0.25", "Approximately 9"]},
+  {q:"Why is the extra step and reagent cost of the acid-chloride route often justified for a valuable acid?", correct:"Because both steps go essentially to completion, minimizing loss of the valuable acid to an unfavorable equilibrium, unlike direct esterification", wrong:["Because the acid-chloride route is actually cheaper overall in every case", "Because direct esterification is chemically impossible for valuable acids", "Because SOCl₂ is a byproduct-free reagent"]},
+  {q:"Why does treating an alpha-halo acid with alcoholic KOH give an α,β-unsaturated acid rather than an α-hydroxy acid, at the mechanistic level?", correct:"Alcoholic KOH favors E2 elimination, removing a beta-hydrogen with the alpha-halide, whereas aqueous NaOH favors direct SN2 substitution at the alpha carbon", wrong:["Alcoholic KOH cannot react with halogenated acids at all", "Both reagents give identical elimination products in every case", "NaOH always causes elimination while alcoholic KOH always causes substitution"]},
+  {q:"Why are acid-chloride-derived ester and amide formation both described as 'essentially irreversible'?", correct:"The acid chloride is highly electrophilic, reacting rapidly and completely with nucleophiles while releasing a stable byproduct, leaving no significant reverse pathway", wrong:["Because no catalyst of any kind is involved in these reactions", "Because acid chlorides cannot react with water under any circumstances", "Because these reactions do not release any byproducts at all"]},
+  {q:"A carboxylic acid is treated first with a trace of P and Cl₂, then with excess NH₃. What is the final product and why?", correct:"An α-amino acid — HVZ first installs Cl at the alpha carbon via a phosphorus-generated acid chloride, then excess NH₃ substitutes the chloride with an amino group", wrong:["An amide, because NH₃ always reacts at the carboxyl carbon first", "An α,β-unsaturated acid, because Cl₂/P always causes elimination", "An ester, because chlorination activates the molecule toward alcohols specifically"]},
+  {q:"How are the acidity order (RCOOH > HOH) and basicity order (RCOO⁻ < HO⁻) logically related?", correct:"A stronger acid always has a correspondingly weaker conjugate base, so RCOOH being more acidic than HOH means RCOO⁻ must be less basic than HO⁻", wrong:["The two orders are unrelated and coincidental", "A stronger acid always has a stronger conjugate base as well", "Basicity and acidity orders must always be identical, never inverted"]},
+  {q:"Connecting the +I effect to the esterification reactivity order, why is R₃CCOOH both a weaker acid in principle and a slower ester-former than HCOOH?", correct:"Increased alkyl substitution raises electron density at the carboxyl group (weakening acidity) and adds steric bulk that hinders nucleophilic attack during esterification", wrong:["The +I effect has no connection to esterification rate at all", "R₃CCOOH is actually a stronger acid than HCOOH due to its bulk", "Esterification rate depends only on acidity, not sterics"]},
+  {q:"Compare the reagent/step count for forming an ester directly, an ester via acid chloride, and an amide. What does this imply about amide formation directly from acid + ammonia?", correct:"Direct ester: 1 step; ester via acid chloride: 2 steps; amide: 2 steps (only via acid chloride) — implying acid + ammonia doesn't undergo a clean, reversible substitution the way acid + alcohol does", wrong:["All three routes require exactly the same number of steps", "Amide formation directly from acid + ammonia is the standard, described route", "Ester formation always requires more steps than amide formation"]},
+  {q:"Why does each molecule of acid eventually get alpha-halogenated even though only a small fraction is ever in the acid-halide form at once?", correct:"The halogen-exchange step continuously cycles different acid molecules through the acid-halide form over time", wrong:["All molecules are halogenated simultaneously in a single instant", "Only the first molecule to react is ever halogenated", "The acid halide form is permanent for whichever molecule first forms it"]},
+  {q:"Why is amide formation from an acid chloride not subject to the same reversibility concern as ester formation from an acid directly?", correct:"The acid chloride + ammonia reaction goes to completion by releasing HCl, unlike the acid + alcohol reaction, which is an H⁺-catalyzed equilibrium", wrong:["Ammonia is incapable of ever reacting reversibly with any carbonyl", "Acid chlorides never release any byproduct when reacting with ammonia", "Amides spontaneously convert back to acid chlorides under normal conditions"]},
+  {q:"Between RCH₂COOH and R₂CHCOOH, which esterifies faster, and what does this predict about the hydrolysis rate of their corresponding esters?", correct:"RCH₂COOH esterifies faster (less hindrance); its ester should also hydrolyze faster than the ester of R₂CHCOOH, since sterics slow both directions", wrong:["R₂CHCOOH esterifies faster due to greater alkyl stabilization", "Hydrolysis rate is unrelated to esterification rate for the same ester", "Both esters hydrolyze at identical rates regardless of substitution"]},
+  {q:"Why is LiAlH₄ described as ideal specifically for 'drugs and hormones' rather than bulk commodity chemicals?", correct:"Drugs and hormones are produced in small quantities at high value, easily absorbing LiAlH₄'s expense, unlike low-value bulk fatty acids", wrong:["LiAlH₄ only chemically reacts with drug molecules", "Bulk commodity chemicals cannot be reduced by any hydride reagent", "Drugs and hormones do not contain carboxylic acid groups"]},
+  {q:"What is the shared strategic principle behind using excess ethanol for γ-phenylbutyric acid esterification and excess NH₃ for alpha-amino acid synthesis?", correct:"Using a large excess of a cheap reagent drives an equilibrium or competing reaction toward the desired product", wrong:["Both reactions require no catalyst under any conditions", "Both reactions are actually irreversible, so excess reagent is unnecessary", "Excess reagent is used only to increase reaction temperature"]},
+  {q:"If water is continuously removed during Fischer esterification, what happens to the ester yield, and why?", correct:"Yield increases beyond the normal ~66%, since removing a product shifts the equilibrium further toward ester (Le Chatelier's principle)", wrong:["Yield decreases because water is required as a reactant", "Yield is unaffected since water plays no role in the equilibrium", "The reaction becomes irreversible only if water is added, not removed"]},
+  {q:"What happens to a carboxylic acid's ionization equilibrium if H₃O⁺ concentration is deliberately increased?", correct:"The equilibrium shifts back toward un-ionized RCOOH, suppressing further ionization", wrong:["The equilibrium shifts further toward RCOO⁻ and H₃O⁺", "Ka itself increases as a result", "No effect occurs on the ionization equilibrium"]},
+  {q:"Why does the text distinguish 'acidity/salt formation' from 'conversion into functional derivatives' as two separate reaction categories, even though both alter the OH of COOH?", correct:"Salt formation is a reversible acid-base equilibrium (only the proton leaves), while derivative formation replaces the whole OH group with a different atom/group, forming a distinct structure", wrong:["The two categories describe chemically identical processes", "Salt formation permanently destroys the carboxyl group", "Derivative formation never involves the OH group at all"]},
+  {q:"Would converting mesitoic acid to its acid chloride necessarily eliminate its esterification difficulties? Why or why not?", correct:"Not necessarily — steric hindrance from the ortho-methyl groups can still slow nucleophilic attack at the carbonyl carbon even with the more reactive acid chloride", wrong:["Yes, acid chlorides are always immune to steric effects", "Yes, because mesitoic acid loses its methyl groups upon chlorination", "No, because acid chlorides cannot be formed from hindered acids at all"]},
+  {q:"Rank the following by predicted esterification rate: (i) CH₃COOH+CH₃OH, (ii) R₃CCOOH+CH₃OH, (iii) CH₃COOH+tertiary alcohol.", correct:"(i) fastest, then (ii) and (iii) both slower due to one-sided hindrance, with (i) clearly ahead of both", wrong:["(iii) is fastest because tertiary alcohols are always most reactive", "(ii) is fastest because bulky acids react fastest", "All three react at identical rates"]},
+  {q:"Why does the text emphasize that even a mild base like NaHCO₃ fully converts benzoic acid to sodium benzoate?", correct:"It demonstrates that carboxylic acids are acidic enough that a common, mild base suffices — reinforcing their status as the most acidic common organic class", wrong:["It shows that benzoic acid is unusually resistant to weak bases", "It proves that NaHCO₃ is actually a stronger base than NaOH", "It shows carboxylic acids require unusually strong bases to react at all"]},
+  {q:"Why can't simply adding more H₂SO₄ catalyst to a Fischer esterification increase the equilibrium ester yield?", correct:"A catalyst speeds both forward and reverse reactions equally without changing the thermodynamic equilibrium position", wrong:["More catalyst always increases yield in any reversible reaction", "H₂SO₄ is not actually a catalyst in this reaction", "Adding more catalyst destroys the ester as it forms"]},
+  {q:"Contrast theoretical maximum ester yield for the acid-chloride route versus direct esterification.", correct:"The acid-chloride route can approach ~100% conversion at each step; direct esterification is capped near the equilibrium value (~66% under 1:1 conditions) unless excess reactant or product removal is used", wrong:["Both routes are capped at exactly the same maximum yield in all cases", "Direct esterification always exceeds the acid-chloride route in yield", "The acid-chloride route cannot exceed 50% conversion under any condition"]},
+  {q:"Why does converting an acid to its acid chloride dramatically increase electrophilicity at the carbonyl carbon?", correct:"Replacing the poor leaving group OH with the excellent leaving group Cl makes the carbon far more attractive to nucleophilic attack", wrong:["Chlorine donates electron density to the carbonyl carbon, stabilizing it", "The carbonyl carbon's hybridization changes from sp² to sp³", "Acid chlorides have no leaving group at all"]},
+  {q:"If only even-carbon fatty acids are naturally available, what is one route (implied by the text) to obtain an odd-carbon-number alcohol?", correct:"Increase the chain length by one carbon during synthesis before or after reduction", wrong:["It is impossible to ever obtain an odd-carbon alcohol from natural fats", "Reduce an even-carbon acid twice in a row with LiAlH₄", "Halogenate the even-carbon acid at the alpha position only"]},
+  {q:"Predict the product of brominating propionic acid once via HVZ, then treating that product with alcoholic KOH instead of NaOH.", correct:"Acrylic acid (CH₂=CH-COOH), via elimination using a beta-hydrogen and the alpha-bromide", wrong:["3-Bromopropanoic acid, unchanged", "An alpha-hydroxy acid, via substitution", "A carboxylate salt with no further structural change"]},
+  {q:"Why does the text present only one described synthetic route to amides (via acid chloride) but two competing routes to esters (direct and via acid chloride)?", correct:"It implies that a direct, reversible acid + ammonia route (analogous to Fischer esterification) is not a practical or described pathway to amides", wrong:["It implies amides cannot exist as stable compounds", "It implies esters cannot be made directly from acid and alcohol at all", "It implies acid chlorides cannot react with ammonia"]},
+  {q:"Given the acidity order provided, can RCOO⁻ effectively deprotonate ROH to a useful extent? Why or why not?", correct:"No — RCOO⁻ is the conjugate base of a stronger acid (RCOOH) than ROH, so it is too weak a base to significantly deprotonate ROH", wrong:["Yes, RCOO⁻ is a much stronger base than RO⁻ and easily deprotonates ROH", "Yes, because RCOOH and ROH have identical acidity", "No, because ROH has no acidic hydrogen at all"]},
+  {q:"What does the successful acid-catalyzed reversal of an ester back to acid and alcohol reveal about the thermodynamic relationship between these two states?", correct:"Ester+water and acid+alcohol lie on the same reversible equilibrium, not two unrelated or one-way states", wrong:["Esters are always thermodynamically more stable and cannot reasonably reverse", "Acid+alcohol can never reform once converted to ester+water", "Hydrolysis and esterification are governed by different, unrelated equilibria"]},
+  {q:"Why is HVZ halogenation self-sustaining even though the initial acid halide is present only in trace amount?", correct:"The halogen-exchange reaction passes the halogenated identity to fresh acid, regenerating acid halide from only a catalytic quantity of phosphorus", wrong:["Because phosphorus is continuously regenerated from carbon dioxide", "Because halogen gas alone can substitute without any acid halide involvement", "Because each acid molecule reacts with phosphorus individually and permanently"]},
+  {q:"Why would a chemist favor the acid-chloride route over direct esterification specifically when trying to esterify a very expensive, low-availability acid?", correct:"To minimize the fraction of the valuable acid lost to an unfavorable reversible equilibrium, since the acid-chloride steps go essentially to completion", wrong:["Because expensive acids cannot undergo Fischer esterification under any conditions", "Because the acid-chloride route requires less total reagent than direct esterification", "Because expensive acids do not form acid chlorides"]},
+  {q:"Explain why bulkier acids and alcohols both slow esterification via the same underlying cause.", correct:"Both slow the rate of nucleophilic attack at (or departure from) the crowded carbonyl carbon during the transition state", wrong:["Bulky acids slow the reaction by lowering solution pH, unrelated to bulky alcohols' effect", "Only the alcohol's bulk affects the transition state; the acid's bulk is irrelevant", "Bulky groups affect only the boiling point, not the reaction rate"]},
+  {q:"If a carboxylic acid derivative reaction were run with insufficient mineral acid catalyst, what would likely happen to the approach to equilibrium versus the final yield?", correct:"The reaction would approach equilibrium more slowly, but the final equilibrium yield would remain essentially unchanged", wrong:["Both the rate and final yield would be proportionally reduced", "The final yield would increase because less catalyst means less reverse reaction", "No reaction of any kind could occur without the catalyst present at a high level"]},
+  {q:"What does the 'highly reactive' character of the acid chloride ultimately explain about its role as a synthetic intermediate?", correct:"It explains why the acid chloride serves as a versatile gateway to many derivatives (esters, amides), since diverse nucleophiles can readily attack and displace chloride", wrong:["It explains why the acid chloride is generally unreactive toward common nucleophiles", "It explains why acid chlorides cannot be isolated or used synthetically", "It explains why acid chlorides only ever react with water"]},
+  {q:"Summarize, at the conceptual level, why understanding 'which step is reversible' matters for planning an efficient multi-step carboxylic acid synthesis.", correct:"Reversible steps cap the maximum yield at an equilibrium value unless conditions are manipulated, while irreversible steps can approach complete conversion, so route choice directly affects synthetic efficiency", wrong:["Reversibility only matters for reactions involving inorganic acids, not organic ones", "All steps in carboxylic acid chemistry are irreversible, so this consideration never applies", "Reversible steps always give higher yields than irreversible ones"]}
+]
+};
 
 function shuffle(arr){
   const a = arr.slice();
@@ -824,42 +1135,53 @@ function shuffle(arr){
   return a;
 }
 
-let quizOrder = shuffle(quizBank.map((_,i)=>i));
-let quizIndex = 0;
-let quizScore = 0;
-let currentOptions = [];
-let answered = false;
+let currentQuizLevel = 'easy';
+const quizState = {
+  easy:   { order: shuffle(quizBankByLevel.easy.map((_,i)=>i)),   index:0, score:0 },
+  medium: { order: shuffle(quizBankByLevel.medium.map((_,i)=>i)), index:0, score:0 },
+  hard:   { order: shuffle(quizBankByLevel.hard.map((_,i)=>i)),   index:0, score:0 }
+};
 
 const quizShell = document.getElementById('quizShell');
 const quizSub = document.getElementById('quizSub');
-quizSub.textContent = quizBank.length + " questions, options reshuffled every attempt.";
+const quizLevelTabs = document.getElementById('quizLevelTabs');
+let currentOptions = [];
+let answered = false;
+
+function updateQuizSub(){
+  quizSub.textContent = quizBankByLevel[currentQuizLevel].length + " questions, options reshuffled every attempt.";
+}
 
 function renderQuiz(){
-  if(quizIndex >= quizOrder.length){
+  const bank = quizBankByLevel[currentQuizLevel];
+  const state = quizState[currentQuizLevel];
+  updateQuizSub();
+
+  if(state.index >= state.order.length){
     quizShell.innerHTML = `
       <div class="quiz-done">
-        <p class="big">${quizScore} / ${quizOrder.length}</p>
+        <p class="big">${state.score} / ${state.order.length}</p>
         <p style="color:var(--text-muted);margin:6px 0 20px;">Final score</p>
         <button class="quiz-btn" id="restartBtn">Restart quiz</button>
       </div>
     `;
     document.getElementById('restartBtn').addEventListener('click',()=>{
-      quizOrder = shuffle(quizBank.map((_,i)=>i));
-      quizIndex = 0; quizScore = 0;
+      state.order = shuffle(bank.map((_,i)=>i));
+      state.index = 0; state.score = 0;
       renderQuiz();
     });
     return;
   }
 
-  const item = quizBank[quizOrder[quizIndex]];
+  const item = bank[state.order[state.index]];
   currentOptions = shuffle([{t:item.correct,ok:true}, ...item.wrong.map(w=>({t:w,ok:false}))]);
   answered = false;
 
-  const pct = Math.round((quizIndex/quizOrder.length)*100);
+  const pct = Math.round((state.index/state.order.length)*100);
   quizShell.innerHTML = `
     <div class="quiz-progress">
-      <span>Question ${quizIndex+1} of ${quizOrder.length}</span>
-      <span class="score">Score: ${quizScore}</span>
+      <span>Question ${state.index+1} of ${state.order.length}</span>
+      <span class="score">Score: ${state.score}</span>
     </div>
     <div class="quiz-track"><div class="quiz-track-fill" style="width:${pct}%"></div></div>
     <p class="quiz-q">${item.q}</p>
@@ -883,26 +1205,37 @@ function renderQuiz(){
         if(el.textContent === item.correct) el.classList.add('correct');
       });
       if(opt.ok){
-        quizScore++;
+        state.score++;
       } else {
         b.classList.add('wrong');
       }
       document.getElementById('nextBtn').removeAttribute('disabled');
-      document.querySelector('.quiz-progress .score').textContent = 'Score: ' + quizScore;
+      document.querySelector('.quiz-progress .score').textContent = 'Score: ' + state.score;
     });
     optWrap.appendChild(b);
   });
 
   document.getElementById('skipBtn').addEventListener('click',()=>{
-    quizIndex++;
+    state.index++;
     renderQuiz();
   });
   document.getElementById('nextBtn').addEventListener('click',()=>{
-    quizIndex++;
+    state.index++;
     renderQuiz();
   });
 }
+
+quizLevelTabs.querySelectorAll('.level-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    quizLevelTabs.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentQuizLevel = btn.dataset.level;
+    renderQuiz();
+  });
+});
+
 renderQuiz();
+
 </script>
 </body>
 </html>
